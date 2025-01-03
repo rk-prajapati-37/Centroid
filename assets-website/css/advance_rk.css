@@ -1,0 +1,63 @@
+.tagline-txt {
+  margin: 20px auto;
+  /* background-color: #084a5a; */
+  box-shadow: none;
+  background-image: url(../img/inside-banner/tagline-txt-rk.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  height: 150px;
+}
+
+.changing-text {
+  font-size: 2rem;
+  font-weight: bold;
+  /* text-align: center; */
+  /* color: #084a5a; */
+  color: #fff;
+  overflow: hidden; /* Ensure the text doesn't overflow */
+  height: 2.5rem; /* Adjust height to match font size */
+  position: relative;
+}
+
+.changing-text span {
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  animation: fadeSlide 9s linear infinite; /* Infinite animation */
+}
+
+/* Keyframes for fade and slide effect */
+@keyframes fadeSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+/* Set individual animations for each span */
+.changing-text span:nth-child(1) {
+  animation-delay: 0s;
+}
+.changing-text span:nth-child(2) {
+  animation-delay: 3s;
+}
+.changing-text span:nth-child(3) {
+  animation-delay: 6s;
+}

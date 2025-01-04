@@ -535,14 +535,193 @@
             class="col-xl-12 col-lg-12 col-md-12 icon-boxes d-flex flex-column align-items-stretch justify-content-center py-0 py-lg-3 px-lg-5">
             <h2>Watch Our Trainers in Live Action </h2>
             <p></p>
-          </div>
-          <div class="col-xl-12 col-lg-12 col-md-12 video-box d-flex justify-content-center align-items-stretch rounded"
+
+            <!-- <div class="col-xl-12 col-lg-12 col-md-12 video-box d-flex justify-content-center align-items-stretch rounded"
             data-aos="fade-right">
             <a href="https://youtube.com/channel/UCKGeouQknAoiMm7JuP8hpdw" class="play-btn mb-4" target="_blank"></a>
+          </div> -->
+
+
+            <div class="ytv-video-section-rk">
+              <div class="tab-navigation">
+                <button class="slide-btn left" onclick="slideTabs(-1)"> <i class="fas fa-less-than"></i> </button>
+                <div class="tab-buttons">
+                  <!-- Tab buttons will be dynamically added here -->
+                </div>
+                <button class="slide-btn right" onclick="slideTabs(1)"> <i class="fas fa-greater-than"></i> </button>
+              </div>
+
+              <div class="playlist-content">
+                <!-- Playlist sections will be dynamically added here -->
+              </div>
+
+              <!-- Modal for Video Popup -->
+              <div id="video-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                  <span class="close-btn" onclick="closeModal()">×</span>
+                  <iframe id="modal-iframe" src="" allowfullscreen=""></iframe>
+                </div>
+              </div>
+            </div>
+            <script>
+              const API_KEY = 'AIzaSyDYOIrUeLzrbvxc2Hn5EClPKDqjN1pGTTg';
+              const PLAYLISTS = [
+                { id: 'PLMuJAbxi-RFDqS6OflfwxweCzcGZCyzTJ', title: 'Tricky Sums' },
+                { id: 'PLMuJAbxi-RFC87T5cBEcei5-98CwfOf3_', title: 'RMO' },
+                { id: 'PLMuJAbxi-RFCyIWD06jSonuCS17a4GmVX', title: 'Logarithm series' },
+                { id: 'PLmI6LURb8uRf0cxVSrkM9mzFjqeG2HIJC', title: 'TFCN Seasons 1' },
+                { id: '', title: 'TFCN Seasons 2' }  // Playlist with missing ID
+              ];
+
+              const MAX_RESULTS = 3;
+              let pageTokens = {};
+              let loadedVideos = {}; // Track loaded videos for each playlist
+              let isModalOpen = false;
+
+              async function fetchVideos(playlistTitle, containerId, pageToken = '') {
+                const playlist = PLAYLISTS.find(pl => pl.title === playlistTitle);
+
+                // Check if the playlist has a valid ID
+                if (!playlist.id) {
+                  const container = document.getElementById(containerId).querySelector('.video-container');
+                  container.innerHTML = '<p class="video-title-comson">Coming Soon...</p>';
+                  return;
+                }
+
+                const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=${MAX_RESULTS}&playlistId=${playlist.id}&key=${API_KEY}&pageToken=${pageToken}`;
+
+                try {
+                  const response = await fetch(url);
+                  if (!response.ok) throw new Error(`API error: ${response.status}`);
+                  const data = await response.json();
+
+                  const container = document.getElementById(containerId).querySelector('.video-container');
+                  if (data.items.length === 0) {
+                    container.innerHTML = '<p>No videos found in this playlist.</p>';
+                  } else {
+                    // Track loaded video IDs for the current playlist
+                    const newVideos = data.items.filter(item => !loadedVideos[playlist.id]?.includes(item.snippet.resourceId.videoId));
+
+                    // Add new videos to the container
+                    newVideos.forEach(item => {
+                      const videoId = item.snippet.resourceId.videoId;
+                      const videoTitle = item.snippet.title.split('|')[0].trim();
+                      const thumbnailUrl = item.snippet.thumbnails.medium.url;
+
+                      const videoDiv = document.createElement('div');
+                      videoDiv.classList.add('video-thumbnail');
+                      videoDiv.innerHTML = `
+                                <img src="${thumbnailUrl}" onclick="openModal('${videoId}')" alt="${videoTitle}">
+                                <p class="video-title" onclick="openModal('${videoId}')"><span>${videoTitle}</span></p>
+                                <div class="play-button" onclick="openModal('${videoId}')">&#9654;</div>
+                            `;
+                      container.appendChild(videoDiv);
+
+                      // Track this video as loaded
+                      loadedVideos[playlist.id] = [...(loadedVideos[playlist.id] || []), videoId];
+                    });
+
+                    // Update the page token for future requests
+                    if (data.nextPageToken) {
+                      pageTokens[playlist.id] = data.nextPageToken;
+                      const loadMoreButton = document.querySelector(`#${containerId} .load-more`);
+                      if (!loadMoreButton) {
+                        const button = document.createElement('button');
+                        button.classList.add('load-more');
+                        button.innerHTML = 'Load More';
+                        button.onclick = () => fetchVideos(playlistTitle, containerId, data.nextPageToken);
+                        container.appendChild(button);
+                      }
+                    } else {
+                      const loadMoreButton = document.querySelector(`#${containerId} .load-more`);
+                      if (loadMoreButton) loadMoreButton.remove();
+                    }
+                  }
+                } catch (error) {
+                  console.error(error);
+                }
+              }
+
+              function openModal(videoId) {
+                const iframe = document.getElementById('modal-iframe');
+                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                document.getElementById('video-modal').style.display = 'flex';
+                isModalOpen = true;
+              }
+
+              function closeModal() {
+                const iframe = document.getElementById('modal-iframe');
+                iframe.src = '';
+                document.getElementById('video-modal').style.display = 'none';
+                isModalOpen = false;
+              }
+
+              function slideTabs(direction) {
+                const tabs = document.querySelector('.tab-buttons');
+                const tabWidth = tabs.querySelector('.tab-button').offsetWidth;
+                tabs.scrollLeft += direction * tabWidth;
+              }
+
+              // Add tab buttons and content
+              function createTabs() {
+                const tabButtonsContainer = document.querySelector('.tab-buttons');
+                const playlistContentContainer = document.querySelector('.playlist-content');
+
+                PLAYLISTS.forEach((playlist, index) => {
+                  // Create tab button
+                  const tabButton = document.createElement('button');
+                  tabButton.classList.add('tab-button');
+                  tabButton.innerText = playlist.title;
+                  tabButton.onclick = () => {
+                    setActiveTab(index);
+                    fetchVideos(playlist.title, `playlist-container-${index}`);
+                  };
+                  tabButtonsContainer.appendChild(tabButton);
+
+                  // Create playlist section
+                  const section = document.createElement('section');
+                  section.classList.add('playlist-section');
+                  section.id = `playlist-container-${index}`;
+                  const videoContainer = document.createElement('div');
+                  videoContainer.classList.add('video-container');
+                  section.appendChild(videoContainer);
+                  playlistContentContainer.appendChild(section);
+                });
+
+                setActiveTab(0); // Set default active tab
+              }
+
+              function setActiveTab(index) {
+                const tabs = document.querySelectorAll('.tab-button');
+                tabs.forEach((tab, idx) => {
+                  tab.classList.toggle('active', idx === index);
+                });
+
+                const sections = document.querySelectorAll('.playlist-section');
+                sections.forEach((section, idx) => {
+                  section.classList.toggle('active', idx === index);
+                });
+              }
+
+              window.addEventListener('scroll', () => {
+                if (window.scrollY > 120 && !isModalOpen) {
+                  closeModal();
+                }
+              });
+
+              document.addEventListener('DOMContentLoaded', () => {
+                createTabs();
+                fetchVideos(PLAYLISTS[0].title, 'playlist-container-0');
+              });
+            </script>
+
+
+
+
+
+
+
           </div>
-
-
-        </div>
     </section>
 
     <!-- ======= Testimonials Section ======= -->

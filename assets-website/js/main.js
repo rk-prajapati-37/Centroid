@@ -244,55 +244,6 @@
 
   // contact from home
 
-  function doPost(e) {
-    var sheet = SpreadsheetApp.openById(
-      "1GuiSBy1DaHaAGE3H97QitolB2Um0Do9H_KoEYnK-j7U"
-    ).getActiveSheet();
-    var data = JSON.parse(e.postData.contents);
-
-    // Append data to the sheet
-    sheet.appendRow([
-      data.name,
-      data.course,
-      data.mobile,
-      data.comment,
-      new Date(),
-    ]);
-
-    // Send email to user and admin
-    var userEmail = data.userEmail; // Add user email from form
-    var adminEmail = "r.k.prajapati0307@gmail.com"; // Replace with admin email
-
-    var userMessage =
-      "Dear " +
-      data.name +
-      ",\n\nThank you for your inquiry about " +
-      data.course +
-      ". We will contact you shortly.\n\nBest regards,\nTeam";
-    var adminMessage =
-      "New Form Submission:\n\nName: " +
-      data.name +
-      "\nCourse: " +
-      data.course +
-      "\nMobile: " +
-      data.mobile +
-      "\nComment: " +
-      data.comment +
-      "\n\nTime: " +
-      new Date();
-
-    // Send email to user
-    GmailApp.sendEmail(userEmail, "Thank You for Your Submission", userMessage);
-
-    // Send email to admin
-    GmailApp.sendEmail(adminEmail, "New Form Submission", adminMessage);
-
-    // Return success response
-    return ContentService.createTextOutput(
-      JSON.stringify({ status: "success" })
-    ).setMimeType(ContentService.MimeType.JSON);
-  }
-
   //
 
   // Porfolio isotope and filter
